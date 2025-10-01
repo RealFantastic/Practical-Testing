@@ -1,6 +1,9 @@
 package sample.cafekiosk.unit;
 
 import org.junit.jupiter.api.Test;
+import sample.cafekiosk.order.Order;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,11 +19,11 @@ class CafeKioskTest {
         System.out.println(">>> 담긴 음료 : " + cafeKiosk.getBeverages().get(0).getName());
 
         /*이 테스트의 문제
-        *
-        * 1. Console에 찍어서 사람이 확인한다.
-        * 2. 타인이 보면 어떤 것을 검증해야 하는지 확인하기 어렵다.
-        * 3. White case에 대한 검증만 존재한다.
-        * */
+         *
+         * 1. Console에 찍어서 사람이 확인한다.
+         * 2. 타인이 보면 어떤 것을 검증해야 하는지 확인하기 어렵다.
+         * 3. White case에 대한 검증만 존재한다.
+         * */
     }
 
     @Test
@@ -95,5 +98,50 @@ class CafeKioskTest {
         //then
         cafeKiosk.clear();
         assertThat(cafeKiosk.getBeverages()).isEmpty();
+    }
+
+    @Test
+    void createOrder() throws Exception {
+        //given
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        //when
+        cafeKiosk.add(americano);
+        Order order = cafeKiosk.createOrder();
+
+        //then
+        assertThat(order.getBeverages()).hasSize(1);
+        assertThat(order.getBeverages().get(0).getName()).isEqualTo("아메리카노");
+    }
+
+    @Test
+    void createOrderWithCurrentTime() throws Exception {
+        //given
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        //when
+        cafeKiosk.add(americano);
+        Order order = cafeKiosk.createOrder(LocalDateTime.of(2025, 1, 1, 10, 0)); //해피 케이스를 위해 10시로 설정
+
+        //then
+        assertThat(order.getBeverages()).hasSize(1);
+        assertThat(order.getBeverages().get(0).getName()).isEqualTo("아메리카노");
+    }
+
+    @Test
+    void createOrderOutsideOpenTime() throws Exception {
+        //given
+        CafeKiosk cafeKiosk = new CafeKiosk();
+        Americano americano = new Americano();
+
+        //when
+        cafeKiosk.add(americano);
+
+        //then
+        assertThatThrownBy(() -> cafeKiosk.createOrder(LocalDateTime.of(2025, 1, 1, 9, 59)))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("주문 가능한 시간이 아닙니다. 관리자에게 문의하세요.");
     }
 }
